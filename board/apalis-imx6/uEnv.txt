@@ -1,0 +1,86 @@
+bootcmd=run distro_bootcmd
+bootdelay=1
+baudrate=115200
+ethprime=FEC
+ipaddr=192.168.10.2
+serverip=192.168.10.1
+netmask=255.255.255.0
+loadaddr=0x12000000
+arch=arm
+cpu=armv7
+board=apalis_imx6
+board_name=apalis_imx6
+vendor=toradex
+soc=mx6
+mmc_boot=if mmc dev ${devnum}; then devtype=mmc; run scan_dev_for_boot_part; fi
+boot_net_usb_start=usb start
+usb_boot=usb start; if usb dev ${devnum}; then devtype=usb; run scan_dev_for_boot_part; fi
+sata_boot=if sata dev ${devnum}; then devtype=sata; run scan_dev_for_boot_part; fi
+boot_efi_binary=if fdt addr ${fdt_addr_r}; then bootefi bootmgr ${fdt_addr_r};else bootefi bootmgr ${fdtcontroladdr};fi;load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} efi/boot/bootarm.efi; if fdt addr ${fdt_addr_r}; then bootefi ${kernel_addr_r} ${fdt_addr_r};else bootefi ${kernel_addr_r} ${fdtcontroladdr};fi
+load_efi_dtb=load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} ${prefix}${efi_fdtfile}
+efi_dtb_prefixes=/ /dtb/ /dtb/current/
+scan_dev_for_efi=setenv efi_fdtfile ${fdtfile}; if test -z "${fdtfile}" -a -n "${soc}"; then setenv efi_fdtfile ${soc}-${board}${boardver}.dtb; fi; for prefix in ${efi_dtb_prefixes}; do if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${efi_fdtfile}; then run load_efi_dtb; fi;done;if test -e ${devtype} ${devnum}:${distro_bootpart} efi/boot/bootarm.efi; then echo Found EFI removable media binary efi/boot/bootarm.efi; run boot_efi_binary; echo EFI LOAD FAILED: continuing...; fi; setenv efi_fdtfile
+boot_prefixes=/ /boot/
+boot_scripts=boot.scr.uimg boot.scr
+boot_script_dhcp=boot.scr.uimg
+boot_targets=mmc1 mmc2 usb0 dhcp 
+boot_syslinux_conf=extlinux/extlinux.conf
+boot_extlinux=sysboot ${devtype} ${devnum}:${distro_bootpart} any ${scriptaddr} ${prefix}${boot_syslinux_conf}
+scan_dev_for_extlinux=if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${boot_syslinux_conf}; then echo Found ${prefix}${boot_syslinux_conf}; run boot_extlinux; echo SCRIPT FAILED: continuing...; fi
+boot_a_script=load ${devtype} ${devnum}:${distro_bootpart} ${scriptaddr} ${prefix}${script}; source ${scriptaddr}
+scan_dev_for_scripts=for script in ${boot_scripts}; do if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${script}; then echo Found U-Boot script ${prefix}${script}; run boot_a_script; echo SCRIPT FAILED: continuing...; fi; done
+scan_dev_for_boot=echo Scanning ${devtype} ${devnum}:${distro_bootpart}...; for prefix in ${boot_prefixes}; do run scan_dev_for_extlinux; run scan_dev_for_scripts; done;run scan_dev_for_efi;
+scan_dev_for_boot_part=part list ${devtype} ${devnum} -bootable devplist; env exists devplist || setenv devplist 1; for distro_bootpart in ${devplist}; do if fstype ${devtype} ${devnum}:${distro_bootpart} bootfstype; then run scan_dev_for_boot; fi; done; setenv devplist
+bootcmd_mmc1=devnum=1; run mmc_boot
+bootcmd_mmc2=devnum=2; run mmc_boot
+bootcmd_usb0=devnum=0; run usb_boot
+bootcmd_dhcp=if dhcp ${scriptaddr} ${boot_script_dhcp}; then source ${scriptaddr}; fi;setenv efi_fdtfile ${fdtfile}; if test -z "${fdtfile}" -a -n "${soc}"; then setenv efi_fdtfile ${soc}-${board}${boardver}.dtb; fi; setenv efi_old_vci ${bootp_vci};setenv efi_old_arch ${bootp_arch};setenv bootp_vci PXEClient:Arch:00010:UNDI:003000;setenv bootp_arch 0xa;if dhcp ${kernel_addr_r}; then tftpboot ${fdt_addr_r} dtb/${efi_fdtfile};if fdt addr ${fdt_addr_r}; then bootefi ${kernel_addr_r} ${fdt_addr_r}; else bootefi ${kernel_addr_r} ${fdtcontroladdr};fi;fi;setenv bootp_vci ${efi_old_vci};setenv bootp_arch ${efi_old_arch};setenv efi_fdtfile;setenv efi_old_arch;setenv efi_old_vci;
+distro_bootcmd=for target in ${boot_targets}; do run bootcmd_${target}; done
+bootcmd=run emmcboot ; echo ; echo emmcboot failed ; setenv fdtfile ${fdt_file}; run distro_bootcmd ; usb start ; setenv stdout serial,vga ; setenv stdin serial,usbkbd
+boot_file=zImage
+console=ttymxc0
+defargs=enable_wait_mode=off vmalloc=400M
+dfu_alt_info=u-boot.imx raw 0x2 0x3ff mmcpart 0;boot part 0 1;rootfs part 0 2;zImage fat 0 1;imx6q-apalis-eval.dtb fat 0 1;imx6q-apalis-cam-eval.dtb fat 0 1
+set_emmcargs=setenv emmcargs ip=off root=PARTUUID=${uuid} ro,noatime rootfstype=ext4 rootwait
+emmcboot=run setup; run emmcfinduuid; run set_emmcargs; setenv bootargs ${defargs} ${emmcargs} ${setupargs} ${vidargs}; echo Booting from internal eMMC chip...; run emmcdtbload; load mmc ${emmcdev}:${emmcbootpart} ${kernel_addr_r} ${boot_file} && run fdt_fixup && bootz ${kernel_addr_r} ${dtbparam}
+emmcbootpart=1
+emmcdev=0
+emmcdtbload=setenv dtbparam; load mmc ${emmcdev}:${emmcbootpart} ${fdt_addr_r} ${fdt_file} && setenv dtbparam " - ${fdt_addr_r}" && true
+emmcfinduuid=part uuid mmc ${mmcdev}:${emmcrootpart} uuid
+emmcrootpart=2
+fdt_file=imx6q-apalis-eval.dtb
+fdt_fixup=;
+bootm_size=0x20000000
+fdt_addr_r=0x12100000
+fdt_high=0xffffffff
+initrd_high=0xffffffff
+kernel_addr_r=0x11000000
+pxefile_addr_r=0x17100000
+ramdisk_addr_r=0x12200000
+scriptaddr=0x17000000
+nfsargs=ip=:::::eth0:on root=/dev/nfs ro
+nfsboot=run setup; setenv bootargs ${defargs} ${nfsargs} ${setupargs} ${vidargs}; echo Booting via DHCP/TFTP/NFS...; run nfsdtbload; dhcp ${kernel_addr_r} && run fdt_fixup && bootz ${kernel_addr_r} ${dtbparam}
+nfsdtbload=setenv dtbparam; tftp ${fdt_addr_r} ${fdt_file} && setenv dtbparam " - ${fdt_addr_r}" && true
+set_sdargs=setenv sdargs ip=off root=PARTUUID=${uuid} ro,noatime rootfstype=ext4 rootwait
+sdboot=run setup; run sdfinduuid; run set_sdargs; setenv bootargs ${defargs} ${sdargs} ${setupargs} ${vidargs}; echo Booting from SD card; run sddtbload; load mmc ${sddev}:${sdbootpart} ${kernel_addr_r} ${boot_file} && run fdt_fixup && bootz ${kernel_addr_r} ${dtbparam}
+sdbootpart=1
+sddev=1
+sddtbload=setenv dtbparam; load mmc ${sddev}:${sdbootpart} ${fdt_addr_r} ${fdt_file} && setenv dtbparam " - ${fdt_addr_r}" && true
+sdfinduuid=part uuid mmc ${sddev}:${sdrootpart} uuid
+sdrootpart=2
+set_usbargs=setenv usbargs ip=off root=PARTUUID=${uuid} ro,noatime rootfstype=ext4 rootwait
+usbboot=run setup; usb start; run usbfinduuid; run set_usbargs; setenv bootargs ${defargs} ${setupargs} ${usbargs} ${vidargs}; echo Booting from USB stick...; run usbdtbload; load usb ${usbdev}:${usbbootpart} ${kernel_addr_r} ${boot_file} && run fdt_fixup && bootz ${kernel_addr_r} ${dtbparam}
+usbbootpart=1
+usbdev=0
+usbdtbload=setenv dtbparam; load usb ${usbdev}:${usbbootpart} ${fdt_addr_r} ${fdt_file} && setenv dtbparam " - ${fdt_addr_r}" && true
+usbfinduuid=part uuid usb ${usbdev}:${usbrootpart} uuid
+usbrootpart=2
+setethupdate=if env exists ethaddr; then; else setenv ethaddr 00:14:2d:00:00:00; fi; tftpboot ${loadaddr} flash_eth.img && source ${loadaddr}
+setsdupdate=setenv interface mmc; setenv drive 1; mmc rescan; load ${interface} ${drive}:1 ${loadaddr} flash_blk.img || setenv drive 2; mmc rescan; load ${interface} ${drive}:1 ${loadaddr} flash_blk.img && source ${loadaddr}
+setup=setenv setupargs fec_mac=${ethaddr} consoleblank=0 no_console_suspend=1 console=tty1 console=${console},${baudrate}n8
+ setupdate=run setsdupdate || run setusbupdate || run setethupdate
+setusbupdate=usb start && setenv interface usb; setenv drive 0; load ${interface} ${drive}:1 ${loadaddr} flash_blk.img && source ${loadaddr}
+splashpos=m,m
+vidargs=mxc_hdmi.only_cea=1 video=mxcfb0:dev=hdmi,1920x1080M@60,if=RGB24 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off fbmem=32M
+ 
+

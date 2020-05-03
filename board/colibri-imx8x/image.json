@@ -1,0 +1,61 @@
+{
+    "config_format": 2,
+    "autoinstall": false,
+    "name": "Toradex Embedded Linux Console Demo",
+    "description": "Image without graphical interface",
+    "version": "3.0b4.254",
+    "release_date": "2020-04-21",
+    "u_boot_env": "uEnv.txt",
+    "prepare_script": "prepare.sh",
+    "wrapup_script": "wrapup.sh",
+    "marketing": "marketing.tar",
+    "icon": "toradexlinux.png",
+    "supported_product_ids": [
+        "0038",
+        "0050",
+        "0051",
+        "0052"
+    ],
+    "blockdevs": [
+        {
+            "name": "mmcblk0",
+            "partitions": [
+                {
+                    "partition_size_nominal": 64,
+                    "want_maximised": false,
+                    "content": {
+                        "label": "BOOT",
+                        "filesystem_type": "FAT",
+                        "mkfs_options": "",
+                        "filename": "Console-Image-colibri-imx8x.bootfs.tar.xz",
+                        "uncompressed_size": 20.9765625
+                    }
+                },
+                {
+                    "partition_size_nominal": 512,
+                    "want_maximised": true,
+                    "content": {
+                        "label": "RFS",
+                        "filesystem_type": "ext4",
+                        "mkfs_options": "-E nodiscard",
+                        "filename": "Console-Image-colibri-imx8x.tar.xz",
+                        "uncompressed_size": 392.62890625
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mmcblk0boot0",
+            "erase": true,
+            "content": {
+                "filesystem_type": "raw",
+                "rawfiles": [
+                    {
+                        "filename": "imx-boot",
+                        "dd_options": "seek=0"
+                    }
+                ]
+            }
+        }
+    ]
+}

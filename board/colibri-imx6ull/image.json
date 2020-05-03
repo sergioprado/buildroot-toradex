@@ -1,0 +1,98 @@
+{
+    "config_format": 2,
+    "autoinstall": false,
+    "name": "Toradex Embedded Linux Console Demo",
+    "description": "Image without graphical interface",
+    "version": "3.0b4.254",
+    "release_date": "2020-04-21",
+    "u_boot_env": "uEnv.txt",
+    "prepare_script": "prepare.sh",
+    "wrapup_script": "wrapup.sh",
+    "marketing": "marketing.tar",
+    "icon": "toradexlinux.png",
+    "supported_product_ids": [
+        "0036",
+        "0040",
+        "0044",
+        "0045"
+    ],
+    "mtddevs": [
+        {
+            "name": "u-boot1",
+            "content": {
+                "rawfile": {
+                    "filename": "u-boot-nand.imx",
+                    "size": 1
+                }
+            }
+        },
+        {
+            "name": "u-boot2",
+            "content": {
+                "rawfile": {
+                    "filename": "u-boot-nand.imx",
+                    "size": 1
+                }
+            }
+        },
+        {
+            "name": "u-boot-env",
+            "erase": true,
+            "content": {}
+        },
+        {
+            "name": "ubi",
+            "ubivolumes": [
+                {
+                    "name": "kernel",
+                    "size_kib": 8192,
+                    "type": "static",
+                    "content": {
+                        "rawfile": {
+                            "filename": "zImage",
+                            "size": 5
+                        }
+                    }
+                },
+                {
+                    "name": "dtb",
+                    "content": {
+                        "rawfiles": [
+                            {
+                                "filename": "imx6ull-colibri-eval-v3.dtb",
+                                "product_ids": "0036"
+                            },
+                            {
+                                "filename": "imx6ull-colibri-wifi-eval-v3.dtb",
+                                "product_ids": "0040"
+                            },
+                            {
+                                "filename": "imx6ull-colibri-eval-v3.dtb",
+                                "product_ids": "0044"
+                            },
+                            {
+                                "filename": "imx6ull-colibri-wifi-eval-v3.dtb",
+                                "product_ids": "0045"
+                            }
+                        ]
+                    },
+                    "size_kib": 128,
+                    "type": "static"
+                },
+                {
+                    "name": "m4firmware",
+                    "size_kib": 896,
+                    "type": "static"
+                },
+                {
+                    "name": "rootfs",
+                    "content": {
+                        "filesystem_type": "ubifs",
+                        "filename": "Console-Image-colibri-imx6ull.tar.xz",
+                        "uncompressed_size": 148.0078125
+                    }
+                }
+            ]
+        }
+    ]
+}

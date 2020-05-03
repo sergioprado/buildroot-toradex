@@ -1,0 +1,63 @@
+{
+    "config_format": 2,
+    "autoinstall": false,
+    "name": "Buildroot Embedded Linux Image",
+    "description": "Console based image without graphical interface",
+    "version": "3.0b4.254",
+    "release_date": "2020-04-21",
+    "u_boot_env": "uEnv.txt",
+    "marketing": "marketing.tar",
+    "icon": "buildroot.png",
+    "supported_product_ids": [
+        "0014",
+        "0015",
+        "0016",
+        "0017"
+    ],
+    "blockdevs": [
+        {
+            "name": "mmcblk0",
+            "partitions": [
+                {
+                    "partition_size_nominal": 16,
+                    "want_maximised": false,
+                    "content": {
+                        "label": "BOOT",
+                        "filesystem_type": "FAT",
+                        "mkfs_options": "",
+                        "filename": "kernel.tar",
+                        "uncompressed_size": 5.94921875
+                    }
+                },
+                {
+                    "partition_size_nominal": 512,
+                    "want_maximised": true,
+                    "content": {
+                        "label": "RFS",
+                        "filesystem_type": "ext4",
+                        "mkfs_options": "-E nodiscard",
+                        "filename": "rootfs.tar",
+                        "uncompressed_size": 202.8515625
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mmcblk0boot0",
+            "erase": true,
+            "content": {
+                "filesystem_type": "raw",
+                "rawfiles": [
+                    {
+                        "filename": "SPL",
+                        "dd_options": "seek=2"
+                    },
+                    {
+                        "filename": "u-boot.img",
+                        "dd_options": "seek=138"
+                    }
+                ]
+            }
+        }
+    ]
+}

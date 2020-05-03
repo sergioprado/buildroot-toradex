@@ -1,0 +1,93 @@
+{
+    "config_format": 2,
+    "autoinstall": false,
+    "name": "Toradex Embedded Linux Console Demo",
+    "description": "Image without graphical interface",
+    "version": "3.0b4.254",
+    "release_date": "2020-04-21",
+    "u_boot_env": "uEnv.txt",
+    "prepare_script": "prepare.sh",
+    "wrapup_script": "wrapup.sh",
+    "marketing": "marketing.tar",
+    "icon": "toradexlinux.png",
+    "supported_product_ids": [
+        "0032",
+        "0033",
+        "0041"
+    ],
+    "mtddevs": [
+        {
+            "name": "u-boot1",
+            "content": {
+                "rawfile": {
+                    "filename": "u-boot-nand.imx",
+                    "size": 1
+                }
+            }
+        },
+        {
+            "name": "u-boot2",
+            "content": {
+                "rawfile": {
+                    "filename": "u-boot-nand.imx",
+                    "size": 1
+                }
+            }
+        },
+        {
+            "name": "u-boot-env",
+            "erase": true,
+            "content": {}
+        },
+        {
+            "name": "ubi",
+            "ubivolumes": [
+                {
+                    "name": "kernel",
+                    "size_kib": 8192,
+                    "type": "static",
+                    "content": {
+                        "rawfile": {
+                            "filename": "zImage",
+                            "size": 5
+                        }
+                    }
+                },
+                {
+                    "name": "dtb",
+                    "content": {
+                        "rawfiles": [
+                            {
+                                "filename": "imx7s-colibri-eval-v3.dtb",
+                                "product_ids": "0032"
+                            },
+                            {
+                                "filename": "imx7d-colibri-eval-v3.dtb",
+                                "product_ids": "0033"
+                            },
+                            {
+                                "filename": "imx7d-colibri-eval-v3.dtb",
+                                "product_ids": "0041"
+                            }
+                        ]
+                    },
+                    "size_kib": 128,
+                    "type": "static"
+                },
+                {
+                    "name": "m4firmware",
+                    "size_kib": 896,
+                    "type": "static"
+                },
+                {
+                    "name": "rootfs",
+                    "content": {
+                        "filesystem_type": "ubifs",
+                        "filename": "Console-Image-colibri-imx7.tar.xz",
+                        "uncompressed_size": 154.484375
+                    }
+                }
+            ]
+        }
+    ]
+}

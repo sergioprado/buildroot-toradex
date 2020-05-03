@@ -1,14 +1,12 @@
 # Intro
 
-Buildroot BSP for Toradex System-on-Modules.
+Buildroot BSP layer for Toradex System-on-Modules.
 
-This is an "unofficial" BSP based in the official Yocto BSP from Toradex.
+This is an "unofficial" BSP based on the Yocto BSP from Toradex.
 
 # How to build
 
-Here are the instructions to build an embedded Linux system for a Toradex module.
-
-First, install all mandatory host packages Buildroot needs for the compilation, as described in its manual:
+First, check if you have all mandatory host packages Buildroot needs for the compilation, as described in its manual:
 
 https://buildroot.org/downloads/manual/manual.html#requirement
 
@@ -24,7 +22,7 @@ Clone the last stable buildroot version:
 $ git clone git://git.buildroot.net/buildroot -b 2020.02.1
 ```
 
-Clone Buildroot BSB layer for Toradex modules (this repository):
+Clone the Buildroot BSP layer for Toradex modules (this repository):
 
 ```console
 $ git clone git@github.com:sergioprado/buildroot-toradex.git
@@ -56,7 +54,7 @@ $ make menuconfig
 Now start the build:
 
 ```console
-$ make menuconfig
+$ make
 ```
 
 The build should take some time. In the end of the build, you should see the message "*TEZI image successfully generated!*".
